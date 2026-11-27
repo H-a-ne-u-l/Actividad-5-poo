@@ -1,0 +1,25 @@
+from datetime import datetime
+
+class Huesped:
+    def __init__(self, nombres: str, apellidos: str, documento_identidad: int):
+        """Constructor que inicializa los datos básicos del huésped."""
+        self.__nombres = nombres
+        self.__apellidos = apellidos
+        self.__documento_identidad = documento_identidad
+        self.__fecha_ingreso: datetime | None = None
+        self.__fecha_salida: datetime | None = None
+
+    def set_fecha_salida(self, fecha: datetime):
+        self.__fecha_salida = fecha
+
+    def set_fecha_ingreso(self, fecha: datetime):
+        self.__fecha_ingreso = fecha
+
+    def get_fecha_ingreso(self) -> datetime | None:
+        return self.__fecha_ingreso
+
+    def obtener_dias_alojamiento(self) -> int:
+        """Calcula la diferencia en días entre la fecha de salida y la de ingreso."""
+        if self.__fecha_ingreso and self.__fecha_salida:
+            return (self.__fecha_salida - self.__fecha_ingreso).days
+        return 0
