@@ -1,0 +1,100 @@
+import tkinter as tk
+from tkinter import messagebox
+from datetime import datetime
+from hotel import Hotel
+from habitacion import Habitacion
+from utilidades import centrar_ventana
+
+class VentanaSalida(tk.Toplevel):
+    def __init__(self, parent, hotel: Hotel, numero: int):
+        """Constructor de la ventana para calcular el pago y registrar la salida del huésped."""
+        super().__init__(parent)
+        self.hotel = hotel
+        self.numero_habitacion = numero
+        self.habitacion_ocupada: Habitacion | None = self.hotel.obtener_habitacion(numero)
+        self.title("Salida huéspedes")
+        self.resizable(False, False)
+        centrar_ventana(self, 260, 260)
+        self.transient(parent)
+        self.grab_set()
+        self.inicio()
+
+    def inicio(self):
+        """Construye los controles verticales para liquidar la estancia y liberar la habitación."""
+        contenedor = tk.Frame(self)
+        contenedor.pack(expand=True, fill="both", padx=12, pady=8)
+        contenedor.columnconfigure(0, weight=1)
+
+        tk.Label(contenedor, text=f"Habitación: {self.numero_habitacion}", anchor="w").grid(
+            row=0, column=0, sticky="ew", padx=3, pady=3
+        )
+
+        fecha = self.hotel.buscar_fecha_ingreso_habitacion(self.numero_habitacion)
+        tk.Label(contenedor, text=f"Fecha de ingreso: {fecha}", anchor="w").grid(
+            row=1, column=0, sticky="ew", padx=3, pady=3
+        )
+
+        tk.Label(contenedor, text="Fecha de salida (aaaa-mm-dd):", anchor="w").grid(
+            row=2, column=0, sticky="ew", padx=3, pady=3
+        )
+
+        self.campo_fecha_salida = tk.Entry(contenedor)
+        self.campo_fecha_salida.grid(row=3, column=0, sticky="ew", padx=3, pady=3)
+        self.campo_fecha_salida.focus_set()
+
+        tk.Button(contenedor, text="Calcular", command=self.calcular_pago).grid(
+            row=4, column=0, sticky="ew", padx=3, pady=3
+        )
+
+        self.cantidad_dias = tk.Label(contenedor, text="Cantidad de días:", anchor="w")
+        self.cantidad_dias.grid(row=5, column=0, sticky="ew", padx=3, pady=3)
+
+        self.total_pago = tk.Label(contenedor, text="Total: $", anchor="w")
+        self.total_pago.grid(row=6, column=0, sticky="ew", padx=3, pady=3)
+
+        self.registrar_salida = tk.Button(
+            contenedor, text="Registrar Salida", state="disabled", command=self.confirmar_salida
+        )
+        self.registrar_salida.grid(row=7, column=0, sticky="ew", padx=3, pady=3)
+
+    def _reiniciar_calculo(self):
+        """Restablece las etiquetas de cálculo y deshabilita el botón de salida."""
+        self.cantidad_dias.config(text="Cantidad de días:")
+        self.total_pago.config(text="Total: $")
+        self.registrar_salida.config(state="disabled")
+
+    def calcular_pago(self):
+        """Valida la fecha de salida, calcula los días de alojamiento y el monto total."""
+        if self.habitacion_ocupada is None:
+            return
+        huesped = self.habitacion_ocupada.get_huesped()
+        if huesped is None:
+            return
+
+        fecha_s = self.campo_fecha_salida.get().strip()
+        try:
+            fecha2 = datetime.strptime(fecha_s, "%Y-%m-%d")
+        except ValueError:
+            self._reiniciar_calculo()
+            messagebox.showerror("Mensaje", "La fecha no está en el formato solicitado (aaaa-mm-dd)", parent=self)
+            return
+
+        fecha1 = huesped.get_fecha_ingreso()
+        if fecha1 and fecha1 < fecha2:
+            huesped.set_fecha_salida(fecha2)
+            cantidad = huesped.obtener_dias_alojamiento()
+            valor = cantidad * self.habitacion_ocupada.get_precio_dia()
+            self.cantidad_dias.config(text=f"Cantidad de días: {cantidad}")
+            self.total_pago.config(text=f"Total: ${valor:,.2f}")
+            self.registrar_salida.config(state="normal")
+        else:
+            self._reiniciar_calculo()
+            messagebox.showerror("Mensaje", "La fecha de salida debe ser mayor que la de ingreso", parent=self)
+
+    def confirmar_salida(self):
+        """Libera la habitación, elimina la referencia al huésped y cierra la ventana."""
+        if self.habitacion_ocupada is not None:
+            self.habitacion_ocupada.set_huesped(None)
+            self.habitacion_ocupada.set_disponible(True)
+            messagebox.showinfo("Mensaje", "Se ha registrado la salida del huésped", parent=self)
+            self.destroy()
