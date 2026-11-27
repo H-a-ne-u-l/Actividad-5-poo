@@ -1,0 +1,55 @@
+import tkinter as tk
+from tkinter import simpledialog, messagebox
+from hotel import Hotel
+from ventana_habitaciones import VentanaHabitaciones
+from ventana_salida import VentanaSalida
+from utilidades import centrar_ventana
+
+class VentanaPrincipal(tk.Tk):
+    def __init__(self, hotel: Hotel):
+        """Constructor de la ventana principal con la barra de menús del hotel."""
+        super().__init__()
+        self.hotel = hotel
+        self.title("Hotel")
+        self.resizable(False, False)
+        centrar_ventana(self, 280, 380)
+        self.inicio()
+
+    def inicio(self):
+        """Configura el menú superior con las opciones de consulta y salida."""
+        barra_menu = tk.Menu(self)
+        menu_opciones = tk.Menu(barra_menu, tearoff=0)
+
+        menu_opciones.add_command(label="Consultar habitaciones", command=self.abrir_habitaciones)
+        menu_opciones.add_command(label="Salida de huéspedes", command=self.abrir_salida_huespedes)
+
+        barra_menu.add_cascade(label="Menú", menu=menu_opciones)
+        self.config(menu=barra_menu)
+
+    def abrir_habitaciones(self):
+        """Despliega la ventana con el estado de ocupación de las habitaciones."""
+        VentanaHabitaciones(self, self.hotel)
+
+    def abrir_salida_huespedes(self):
+        """Solicita el número de habitación y abre la ventana de salida si está ocupada."""
+        numero_habitacion = simpledialog.askstring(
+            "Salida de huéspedes", "Ingrese número de habitación", parent=self
+        )
+        if numero_habitacion is None:
+            return
+        try:
+            numero = int(numero_habitacion.strip())
+            if not (1 <= numero <= 10):
+                messagebox.showinfo(
+                    "Mensaje", "El número de habitación debe estar entre 1 y 10", parent=self
+                )
+            elif self.hotel.buscar_habitacion_ocupada(numero):
+                VentanaSalida(self, self.hotel, numero)
+            else:
+                messagebox.showinfo(
+                    "Mensaje", "La habitación ingresada no ha sido ocupada", parent=self
+                )
+        except ValueError:
+            messagebox.showerror(
+                "Error", "Campo nulo o error en formato de número", parent=self
+            )
