@@ -1,0 +1,46 @@
+import tkinter as tk
+from tkinter import ttk
+from lista_empleados import ListaEmpleados
+from utilidades import centrar_ventana
+
+class VentanaNomina(tk.Toplevel):
+    def __init__(self, parent, lista: ListaEmpleados):
+        """Constructor de la ventana que muestra la tabla de nómina y el total."""
+        super().__init__(parent)
+        self.lista = lista
+        self.title("Nómina de Empleados")
+        self.resizable(False, False)
+        centrar_ventana(self, 370, 250)
+        self.transient(parent)
+        self.grab_set()
+        self.inicio()
+
+    def inicio(self):
+        """Construye la tabla de empleados con scrollbar y el total de la nómina."""
+        tk.Label(self, text="Lista de empleados:", anchor="w").place(x=20, y=10, width=150, height=23)
+
+        frame_tabla = tk.Frame(self)
+        frame_tabla.place(x=20, y=45, width=330, height=115)
+
+        datos = self.lista.obtener_matriz()
+        titulos = ("NOMBRE", "APELLIDOS", "SUELDO")
+
+        self.tabla = ttk.Treeview(frame_tabla, columns=titulos, show="headings")
+        for col in titulos:
+            self.tabla.heading(col, text=col)
+            self.tabla.column(col, width=103, anchor="center")
+
+        for fila in datos:
+            self.tabla.insert("", tk.END, values=fila)
+
+        scrollbar = ttk.Scrollbar(frame_tabla, orient="vertical", command=self.tabla.yview)
+        self.tabla.configure(yscrollcommand=scrollbar.set)
+
+        self.tabla.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        tk.Label(
+            self,
+            text=f"Total nómina mensual = ${self.lista.total_nomina:,.2f}",
+            anchor="w"
+        ).place(x=20, y=180, width=330, height=23)
