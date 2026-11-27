@@ -1,0 +1,58 @@
+import os
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from lista_empleados import ListaEmpleados
+from ventana_agregar_empleado import VentanaAgregarEmpleado
+from ventana_nomina import VentanaNomina
+from utilidades import centrar_ventana
+
+class VentanaPrincipal(tk.Tk):
+    def __init__(self):
+        """Constructor de la ventana principal con la barra de menús."""
+        super().__init__()
+        self.empleados = ListaEmpleados()
+        self.title("Nómina")
+        self.resizable(False, False)
+        centrar_ventana(self, 280, 380)
+        self.inicio()
+
+    def inicio(self):
+        """Configura la barra de menús y sus opciones."""
+        barra_menu = tk.Menu(self)
+        menu_opciones = tk.Menu(barra_menu, tearoff=0)
+
+        menu_opciones.add_command(label="Agregar empleado", command=self.abrir_agregar_empleado)
+        menu_opciones.add_command(label="Calcular nómina", command=self.abrir_calcular_nomina)
+        menu_opciones.add_separator()
+        menu_opciones.add_command(label="Guardar archivo", command=self.guardar_archivo)
+
+        barra_menu.add_cascade(label="Menú", menu=menu_opciones)
+        self.config(menu=barra_menu)
+
+    def abrir_agregar_empleado(self):
+        """Abre la ventana para agregar un empleado."""
+        VentanaAgregarEmpleado(self, self.empleados)
+
+    def abrir_calcular_nomina(self):
+        """Abre la ventana para visualizar la tabla de nómina."""
+        VentanaNomina(self, self.empleados)
+
+    def guardar_archivo(self):
+        """Solicita una carpeta y guarda el archivo Nómina.txt con el reporte completo."""
+        if not self.empleados.lista:
+            messagebox.showwarning("Advertencia", "No hay empleados registrados para guardar.", parent=self)
+            return
+
+        directorio_elegido = filedialog.askdirectory(parent=self, title="Seleccionar carpeta")
+        if directorio_elegido:
+            try:
+                contenido = self.empleados.convertir_texto()
+                ruta_archivo = os.path.join(directorio_elegido, "Nómina.txt")
+                with open(ruta_archivo, "w", encoding="utf-8") as archivo:
+                    archivo.write(contenido)
+
+                nombre_carpeta = os.path.basename(directorio_elegido) or directorio_elegido
+                texto = f"El archivo de la nómina Nómina.txt se ha creado en {nombre_carpeta}"
+                messagebox.showinfo("Mensaje", texto, parent=self)
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo guardar el archivo: {e}", parent=self)
