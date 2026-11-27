@@ -1,0 +1,65 @@
+import tkinter as tk
+from tkinter import messagebox
+from hotel import Hotel
+from ventana_ingreso import VentanaIngreso
+from utilidades import centrar_ventana
+
+class VentanaHabitaciones(tk.Toplevel):
+    def __init__(self, parent, hotel: Hotel):
+        """Constructor de la ventana que muestra el estado de las diez habitaciones."""
+        super().__init__(parent)
+        self.parent = parent
+        self.hotel = hotel
+        self.title("Habitaciones")
+        self.resizable(False, False)
+        centrar_ventana(self, 700, 240)
+        self.transient(parent)
+        self.grab_set()
+        self.inicio()
+
+    def inicio(self):
+        """Organiza las habitaciones en cuadrícula y agrega el selector numérico inferior."""
+        frame_grid = tk.Frame(self)
+        frame_grid.pack(expand=True, fill="both", padx=20, pady=15)
+
+        for col in range(5):
+            frame_grid.columnconfigure(col, weight=1)
+
+        for idx, hab in enumerate(self.hotel.lista_habitaciones):
+            fila = idx // 5
+            col = idx % 5
+
+            celda = tk.Frame(frame_grid)
+            celda.grid(row=fila, column=col, sticky="w", padx=10, pady=10)
+
+            tk.Label(celda, text=f"Habitación {hab.get_numero_habitacion()}", font=("TkDefaultFont", 9, "bold")).pack(anchor="w")
+            estado = "Disponible" if hab.get_disponible() else "No disponible"
+            color = "green" if hab.get_disponible() else "red"
+            tk.Label(celda, text=estado, fg=color).pack(anchor="w")
+
+        frame_inferior = tk.Frame(self)
+        frame_inferior.pack(pady=(0, 15))
+
+        tk.Label(frame_inferior, text="Habitación a reservar:").pack(side="left", padx=5)
+        self.campo_habitacion_seleccionada = tk.Spinbox(frame_inferior, from_=1, to=10, width=5)
+        self.campo_habitacion_seleccionada.delete(0, tk.END)
+        self.campo_habitacion_seleccionada.insert(0, "1")
+        self.campo_habitacion_seleccionada.pack(side="left", padx=5)
+
+        tk.Button(frame_inferior, text="Aceptar", width=12, command=self.seleccionar_habitacion).pack(side="left", padx=15)
+
+    def seleccionar_habitacion(self):
+        """Comprueba la disponibilidad de la habitación elegida y abre la ventana de ingreso."""
+        try:
+            habitacion = int(self.campo_habitacion_seleccionada.get())
+            if not (1 <= habitacion <= 10):
+                messagebox.showerror("Error", "El número de habitación debe estar entre 1 y 10", parent=self)
+                return
+
+            if not self.hotel.buscar_habitacion_ocupada(habitacion):
+                self.destroy()
+                VentanaIngreso(self.parent, self.hotel, habitacion)
+            else:
+                messagebox.showinfo("Mensaje", "La habitación está ocupada", parent=self)
+        except ValueError:
+            messagebox.showerror("Error", "Número de habitación inválido", parent=self)
