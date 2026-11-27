@@ -1,0 +1,27 @@
+from huesped import Huesped
+
+class Habitacion:
+    def __init__(self, numero_habitacion: int, disponible: bool, precio_dia: float):
+        """Constructor que inicializa el número, disponibilidad y tarifa diaria de la habitación."""
+        self.__numero_habitacion = numero_habitacion
+        self.__disponible = disponible
+        self.__precio_dia = precio_dia
+        self.__huesped: Huesped | None = None
+
+    def get_numero_habitacion(self) -> int:
+        return self.__numero_habitacion
+
+    def get_disponible(self) -> bool:
+        return self.__disponible
+
+    def get_precio_dia(self) -> float:
+        return self.__precio_dia
+
+    def get_huesped(self) -> Huesped | None:
+        return self.__huesped
+
+    def set_huesped(self, huesped: Huesped | None):
+        self.__huesped = huesped
+
+    def set_disponible(self, disponible: bool):
+        self.__disponible = disponible
