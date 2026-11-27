@@ -1,0 +1,45 @@
+from empleado import Empleado
+
+class ListaEmpleados:
+    def __init__(self):
+        """Constructor que inicializa la lista de empleados y el total de nómina."""
+        self.lista: list[Empleado] = []
+        self.total_nomina: float = 0.0
+
+    def agregar_empleado(self, empleado: Empleado):
+        """Agrega un objeto Empleado a la lista."""
+        self.lista.append(empleado)
+
+    def calcular_total_nomina(self) -> float:
+        """Calcula y retorna la suma de los salarios mensuales de todos los empleados."""
+        self.total_nomina = sum(e.calcular_nomina() for e in self.lista)
+        return self.total_nomina
+
+    def obtener_matriz(self) -> list[list[str]]:
+        """Convierte los datos principales de los empleados en una matriz para la tabla."""
+        datos = []
+        self.total_nomina = 0.0
+        for e in self.lista:
+            salario = e.calcular_nomina()
+            datos.append([e.get_nombre(), e.get_apellidos(), f"${salario:,.2f}"])
+            self.total_nomina += salario
+        return datos
+
+    def convertir_texto(self) -> str:
+        """Formatea la información de todos los empleados y el total para exportar a texto."""
+        bloques = []
+        for e in self.lista:
+            bloques.append(
+                f"Nombre = {e.get_nombre()}\n"
+                f"Apellidos = {e.get_apellidos()}\n"
+                f"Cargo = {e.get_cargo().name}\n"
+                f"Género = {e.get_genero().name}\n"
+                f"Salario por día = ${e.get_salario_dia():.2f}\n"
+                f"Días trabajados = {e.get_dias_trabajados()}\n"
+                f"Otros ingresos = ${e.get_otros_ingresos():.2f}\n"
+                f"Pagos salud = ${e.get_pagos_salud():.2f}\n"
+                f"Aportes pensiones = ${e.get_aporte_pensiones():.2f}\n"
+                f"Sueldo mensual = ${e.calcular_nomina():.2f}\n"
+            )
+        bloques.append(f"Total nómina = ${self.calcular_total_nomina():.2f}")
+        return "\n".join(bloques)
