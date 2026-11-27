@@ -1,0 +1,11 @@
+from ventana_principal import VentanaPrincipal
+
+class Principal:
+    @staticmethod
+    def main():
+        """Punto de entrada principal de la aplicación."""
+        mi_ventana_principal = VentanaPrincipal()
+        mi_ventana_principal.mainloop()
+
+if __name__ == "__main__":
+    Principal.main()
